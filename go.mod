@@ -1,4 +1,4 @@
-module first-project
+module github.com/cqu20141693/go-micro
 
 go 1.17
 

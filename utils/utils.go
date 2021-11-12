@@ -1,4 +1,4 @@
-package utils
+package micro
 
 import (
 	"encoding/json"
@@ -10,9 +10,10 @@ import (
 
 var Logger *zap.Logger
 
-func init() {
+func LogInit() {
 	Logger, _ = zap.NewDevelopmentConfig().Build()
 }
+
 func GetOutBoundIP() (ip string, err error) {
 	conn, err := net.Dial("udp", "8.8.8.8:53")
 	if err != nil {
@@ -23,6 +24,7 @@ func GetOutBoundIP() (ip string, err error) {
 	ip = strings.Split(localAddr.String(), ":")[0]
 	return
 }
+
 func ToJSONString(o interface{}) string {
 
 	marshal, err := json.Marshal(o)
