@@ -12,28 +12,36 @@ type ConfigProperties interface {
 
 var ConfigContainer []ConfigProperties = make([]ConfigProperties, 8)
 var stop = make(chan bool)
+var output = make(chan ConfigProperties)
 
-func AddConfigProperties(cpc <-chan ConfigProperties) {
-	for {
-		select {
+func AddConfigProperties(cpc <-chan ConfigProperties) chan ConfigProperties {
+	go func() {
+		for {
+			select {
 
-		case cp := <-cpc:
-			ConfigContainer = append(ConfigContainer, cp)
-			marshal, err := json.Marshal(viper.GetString(cp.prefix()))
-			if err != nil {
-				utils.Logger.Info("config Marshal  failed")
-				return
+			case cp := <-cpc:
+				handleBind(cp)
+			case <-stop:
+				utils.Logger.Info("ConfigProperties add stop")
+				break
 			}
-			err = json.Unmarshal(marshal, &cp)
-			if err != nil {
-				utils.Logger.Info("config Unmarshal failed")
-				return
-			}
-		case <-stop:
-			utils.Logger.Info("ConfigProperties add stop")
-			break
 		}
+	}()
+	return output
+}
+
+func handleBind(cp ConfigProperties) {
+	ConfigContainer = append(ConfigContainer, cp)
+	marshal, err := json.Marshal(viper.GetString(cp.prefix()))
+	if err != nil {
+		utils.Logger.Info("config Marshal  failed")
+
 	}
+	err = json.Unmarshal(marshal, &cp)
+	if err != nil {
+		utils.Logger.Info("config Unmarshal failed")
+	}
+	output <- cp
 }
 
 func Reload() {

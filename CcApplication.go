@@ -18,11 +18,32 @@ func init() {
 
 var exit = make(chan bool, 1)
 
+type ConfigHandler func()
+
+type BeanConfig func() (prefix string, o interface{})
+
+var chs = make([]ConfigHandler, 8)
+
+var bcs = make([]BeanConfig, 8)
+
 func Run(args []string) {
+	// 执行destroy
 	defer Destroy()
 
 	SetupSignalHandler(shutdown) // 注册监听信号，绑定信号处理机制
 	micro.Logger.Info(fmt.Sprintf("start app args=%v", args))
+	// 配置读取NacosInit方法内部实现
+
+	// 数据绑定
+
+	// 配置处理器
+	for i := range chs {
+		chs[i]()
+	}
+	for i := range bcs {
+		container.InjectSingleton(bcs[i]())
+	}
+	// 启动web监听
 	<-exit
 }
 
